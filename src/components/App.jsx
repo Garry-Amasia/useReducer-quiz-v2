@@ -15,6 +15,7 @@ const initialState = {
   currentIndex: 0,
   answer: null,
   points: 0,
+  highscore: 0,
 };
 
 const reducer = (state, action) => {
@@ -39,7 +40,12 @@ const reducer = (state, action) => {
     case "nextQuestion":
       return { ...state, currentIndex: state.currentIndex + 1, answer: null };
     case "finished":
-      return { ...state, status: "finished" };
+      return {
+        ...state,
+        status: "finished",
+        highscore:
+          state.points > state.highscore ? state.points : StaticRange.highscore,
+      };
     default:
       throw new Error("unknown action");
   }
@@ -47,8 +53,10 @@ const reducer = (state, action) => {
 
 //-------------------COMPONENT----------------------------------
 function App() {
-  const [{ questions, status, currentIndex, answer, points }, dispatch] =
-    useReducer(reducer, initialState);
+  const [
+    { questions, status, currentIndex, answer, points, highscore },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   //calculate question length
   const questionsLength = questions.length;
@@ -108,7 +116,11 @@ function App() {
           </>
         )}
         {status === "finished" && (
-          <FinishedScreen points={points} sumOfPoints={sumOfPoints} />
+          <FinishedScreen
+            points={points}
+            sumOfPoints={sumOfPoints}
+            highscore={highscore}
+          />
         )}
       </Main>
     </div>
