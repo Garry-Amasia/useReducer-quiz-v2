@@ -6,6 +6,8 @@ import Error from "./Error";
 import StartScreen from "./StartScreen";
 import Question from "./Question";
 import { NextButton } from "./NextButton";
+import { Progress } from "./Progress";
+import { FinishedScreen } from "./FinishedScreen";
 
 const initialState = {
   questions: [],
@@ -36,6 +38,8 @@ const reducer = (state, action) => {
       };
     case "nextQuestion":
       return { ...state, currentIndex: state.currentIndex + 1, answer: null };
+    case "finished":
+      return { ...state, status: "finished" };
     default:
       throw new Error("unknown action");
   }
@@ -43,11 +47,18 @@ const reducer = (state, action) => {
 
 //-------------------COMPONENT----------------------------------
 function App() {
-  const [{ questions, status, currentIndex, answer }, dispatch] = useReducer(
-    reducer,
-    initialState
-  );
+  const [{ questions, status, currentIndex, answer, points }, dispatch] =
+    useReducer(reducer, initialState);
+
+  //calculate question length
   const questionsLength = questions.length;
+
+  //calculate all the points from all questions
+  const pointsArray = questions.map((question) => question.points);
+  const sumOfPoints = pointsArray.reduce(
+    (accumulator, current) => accumulator + current,
+    0
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,13 +87,28 @@ function App() {
         )}
         {status === "active" && (
           <>
+            <Progress
+              questionLength={questionsLength}
+              index={currentIndex}
+              points={points}
+              sumOfPoints={sumOfPoints}
+              answer={answer}
+            />
             <Question
               question={questions[currentIndex]}
               dispatch={dispatch}
               answer={answer}
             />
-            <NextButton dispatch={dispatch} answer={answer} />
+            <NextButton
+              dispatch={dispatch}
+              answer={answer}
+              currentIndex={currentIndex}
+              questionLength={questionsLength}
+            />
           </>
+        )}
+        {status === "finished" && (
+          <FinishedScreen points={points} sumOfPoints={sumOfPoints} />
         )}
       </Main>
     </div>
