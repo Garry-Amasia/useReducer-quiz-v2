@@ -46,6 +46,8 @@ const reducer = (state, action) => {
         highscore:
           state.points > state.highscore ? state.points : StaticRange.highscore,
       };
+    case "restart":
+      return { ...initialState, questions: state.questions, status: "ready" };
     default:
       throw new Error("unknown action");
   }
@@ -53,10 +55,9 @@ const reducer = (state, action) => {
 
 //-------------------COMPONENT----------------------------------
 function App() {
-  const [
-    { questions, status, currentIndex, answer, points, highscore },
-    dispatch,
-  ] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  console.log(state);
+  const { questions, status, currentIndex, answer, points, highscore } = state;
 
   //calculate question length
   const questionsLength = questions.length;
@@ -120,6 +121,7 @@ function App() {
             points={points}
             sumOfPoints={sumOfPoints}
             highscore={highscore}
+            dispatch={dispatch}
           />
         )}
       </Main>
