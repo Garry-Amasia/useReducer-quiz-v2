@@ -8,6 +8,10 @@ import Question from "./Question";
 import { NextButton } from "./NextButton";
 import { Progress } from "./Progress";
 import { FinishedScreen } from "./FinishedScreen";
+import { Timer } from "./Timer";
+import { Footer } from "./Footer";
+
+const SECS_PER_QUESTION = 30;
 
 const initialState = {
   questions: [],
@@ -16,16 +20,22 @@ const initialState = {
   answer: null,
   points: 0,
   highscore: 0,
+  timer: null,
 };
 
 const reducer = (state, action) => {
+  // console.log(state);
   switch (action.type) {
     case "dataReceived":
       return { ...state, questions: action.payload, status: "ready" };
     case "dataFailed":
       return { ...state, status: "error" };
     case "active":
-      return { ...state, status: "active" };
+      return {
+        ...state,
+        status: "active",
+        timer: state.questions.length * SECS_PER_QUESTION,
+      };
     case "newAnswer":
       const question = state.questions.at(state.currentIndex);
       console.log(question);
@@ -48,6 +58,12 @@ const reducer = (state, action) => {
       };
     case "restart":
       return { ...initialState, questions: state.questions, status: "ready" };
+    case "tick":
+      return {
+        ...state,
+        timer: state.timer - 1,
+        status: state.timer === 0 ? "finished" : state.status,
+      };
     default:
       throw new Error("unknown action");
   }
@@ -56,8 +72,9 @@ const reducer = (state, action) => {
 //-------------------COMPONENT----------------------------------
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  console.log(state);
-  const { questions, status, currentIndex, answer, points, highscore } = state;
+  // console.log(state);
+  const { questions, status, currentIndex, answer, points, highscore, timer } =
+    state;
 
   //calculate question length
   const questionsLength = questions.length;
@@ -108,12 +125,15 @@ function App() {
               dispatch={dispatch}
               answer={answer}
             />
-            <NextButton
-              dispatch={dispatch}
-              answer={answer}
-              currentIndex={currentIndex}
-              questionLength={questionsLength}
-            />
+            <Footer>
+              <Timer dispatch={dispatch} timer={timer} />
+              <NextButton
+                dispatch={dispatch}
+                answer={answer}
+                currentIndex={currentIndex}
+                questionLength={questionsLength}
+              />
+            </Footer>
           </>
         )}
         {status === "finished" && (
